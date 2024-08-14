@@ -1,9 +1,11 @@
 package telran.time;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.Month;
 
-record MonthYear(int month, int year) {}
+record MonthYear(int month, int year) {
+}
 
 public class Main {
     public static void main(String[] args) {
@@ -12,8 +14,7 @@ public class Main {
             printCalendar(monthYear);
         } catch (RuntimeException e) {
             e.printStackTrace();
-        }
-         catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
@@ -42,8 +43,8 @@ public class Main {
     }
 
     private static void printWeekDays() {
-        String[] weekDays = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-        for (String weekday: weekDays) {
+        String[] weekDays = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+        for (String weekday : weekDays) {
             System.out.printf("%4s", weekday);
         }
         System.out.println();
@@ -56,36 +57,46 @@ public class Main {
     }
 
     private static MonthYear getMonthYear(String[] args) throws Exception {
-        int month = Integer.parseInt(args[0]);
-        int year = Integer.parseInt(args[1]);
-        MonthYear monthYear = new MonthYear(month, year);
-        if (args.length == 0) {
-            LocalDate now = LocalDate.now();
-            monthYear = new MonthYear(now.getMonthValue(), now.getYear());
-        }
-
-        if (args.length != 2) {
-            throw new Exception("Please provide exactly two arguments: <month> <year>");
-        }
-
-        if (month < 1 || month > 12) {
-            throw new Exception("Month must be between 1 and 12.");
+        LocalDate now = LocalDate.now();
+        MonthYear monthYear = new MonthYear(now.getMonthValue(), now.getYear());
+        if (args.length > 1) {
+            try {
+                int month = parseMonth(args[0]);
+                int year = parseYear(args[1]);
+                monthYear = new MonthYear(month, year);
+            } catch (NumberFormatException e) {
+                throw new Exception("The year and month must be integers.");
+            } catch (DateTimeException e) {
+                throw new Exception("Invalid value for year or month (month should be 1-12).");
+            }
         }
 
         return monthYear;
     }
 
+    private static int parseYear(String string) throws NumberFormatException {
+        return Integer.parseInt(string);
+    }
+
+    private static int parseMonth(String string) throws DateTimeException {
+        int month = Integer.parseInt(string);
+        if (month < 1 || month > 12) {
+            throw new DateTimeException("Month must be between 1 and 12.");
+        }
+        return month;
+    }
+
     private static int getFirstDayOfWeek(MonthYear monthYear) {
         LocalDate date = LocalDate.of(monthYear.year(), monthYear.month(), 1);
-        return date.getDayOfWeek().getValue(); 
+        return date.getDayOfWeek().getValue();
     }
 
     private static int getOffset(int firstWeekDay) {
-        return (firstWeekDay % 7); 
-    } 
+        return (firstWeekDay % 7);
+    }
 
     private static int getLastDayOfMonth(MonthYear monthYear) {
         LocalDate date = LocalDate.of(monthYear.year(), monthYear.month(), 1);
-        return date.lengthOfMonth(); 
+        return date.lengthOfMonth();
     }
 }
